@@ -1,0 +1,33 @@
+
+.scroll_table {
+    /* max-width: 800px; */
+    overflow-x: auto;
+  }
+
+
+.bold {
+    font-weight: bold;
+  }
+  
+table {
+    white-space: nowrap;
+    margin: 10px 0;
+  }
+
+table, td, th {
+    text-align: center;
+    border-collapse: collapse;
+    border: 1px solid;
+  }
+  
+.scroll_table::-webkit-scrollbar {
+    height: 10px; /* スクロールバーの高さ */
+  }
+  
+.scroll_table::-webkit-scrollbar-thumb {
+    background: #aaa; /* ツマミの色 */
+  }
+  
+  .scroll_table::-webkit-scrollbar-track {
+    background: #ddd; /* トラックの色 */
+  }
