@@ -36,19 +36,13 @@ async function searchBooks() {
     const apiKey_univLib = [];
 
     for (let i = 0; i < 20; i++) { // /^\d{10}$/.test(data.items[i].volumeInfo.industryIdentifiers[0].identifier)
-      // var isbnTest = data.items[i].volumeInfo.industryIdentifiers[0] ? data.items[i].volumeInfo.industryIdentifiers[0].type : null;
-      var isbnTest = null;
-      if (data.items[i].volumeInfo.industryIdentifiers && data.items[i].volumeInfo.industryIdentifiers.length > 0) {
-          isbnTest = data.items[i].volumeInfo.industryIdentifiers[0].type;
-      }
+      var isbnTest = data.items[i].volumeInfo.industryIdentifiers[0].type
       if (isbnTest === "ISBN_10" || isbnTest === "ISBN_13") {
+        console.log(data.items[i].volumeInfo);
         BookData.push(data.items[i].volumeInfo);
       }
     }
-    //検索できるbookdataがあるかどうか確認
-    if (BookData == []) {
-      $("#console").html("検索できる本がありませんでした。");
-    }
+    // console.log(BookData);
 
     for (let i = 0; i < (BookData.length > 3 ? 3 : BookData.length); i++) { //i < 3にすることで三冊までデータを持ってくる
       // BookData[i] = data.items[i].volumeInfo;
@@ -96,10 +90,11 @@ async function searchBooks() {
       }
     };
 
+    var urlData = [];
     var urlList_city = [];
     var urlList_univ = [];
+
     var calilData_city = {};
-    var calilData_univ = {};
 
     const processCityLibData = (data, i) => {
       var calilData_city_N = data.books[isbn10Data[i]][systemId_cityLib];
@@ -107,6 +102,9 @@ async function searchBooks() {
       calilData_city[i] = calilData_city_N;
       urlList_city[i] = url_city;
     };
+
+    var calilData_univ = {};
+    // var libkeyList_univ = [];
 
     const processUnivLibData = (data, i) => {
       var calilData_univ_N = data.books[isbn10Data[i]][systemId_univLib];
@@ -141,6 +139,8 @@ async function searchBooks() {
     };
     dataArr.push(dataObj);
     console.log(dataArr);
+    // var dataArr_str = JSON.stringify(dataArr);
+    // console.log(dataArr_str);
 
     // カウンタ変数を初期化
     let cityLibCount = 0;
@@ -184,34 +184,33 @@ var display_data = function(key_word,dataArr) {
   });
   var current_data = matchingItem ? matchingItem.detailData : null;
   for (let i = 0; i < current_data.titleData.length; i++) {
-    let clonedElement = $("#template").clone(); //テンプレートをクローン
-    clonedElement.attr("id", `data${i}`); //IDを変更
-    $("#output_table").append(clonedElement); //クローンした要素を追加
+    $(`#title .data${i}`).html(current_data.titleData[i]); //本のタイトルを表示
+    $(`#author .data${i}`).html(current_data.authorData[i]); //本の著者を表示
+    $(`#publishDate .data${i}`).html(current_data.publishedDateData[i]); //出版年月日を表示
     var img_scr = "<img src='" + current_data.thumbnailData[i] + "'/>"; // 本の表紙をHTMLに表示
-    $(`#data${i} .image`).html(img_scr);
-    $(`#data${i} .title`).html(current_data.titleData[i]); //本のタイトルを表示
-    $(`#data${i} .author`).html("著者: " + current_data.authorData[i]); //本の著者を表示
-    $(`#data${i} .publishDate`).html("出版年月日: " + current_data.publishedDateData[i]); //出版年月日を表示
+    $(`#image .data${i}`).html(img_scr);
     //蔵書状況を表示
     //URLのリンクを追加
     if (current_data.urlData_city[i]){
-      $(`#data${i} .lendingStatus_cityLib .link`).attr("href", current_data.urlData_city[i]);
+      $(`#lendingStatus_cityLib .data${i} .link`).attr("href", current_data.urlData_city[i]);
     }
     if (current_data.urlData_univ[i]) {
-      $(`#data${i} .lendingStatus_univLib .link`).attr("href", current_data.urlData_univ[i]);
+      $(`#lendingStatus_univLib .data${i} .link`).attr("href", current_data.urlData_univ[i]);
     }
     // cityLibについて
     const places_cityLib = ["中央館", "谷田部", "筑波", "小野川", "茎崎", "自動車"];
     // var places_cityLib = Object.keys(current_data.calilData.cityLib[i].libkey);
     var libkey_city = current_data.calilData.cityLib[i].libkey;
+    console.log(libkey_city);
     for (let index = 0; index < 6; index++) {
       var place_cityLib = places_cityLib[index];
+      console.log("ここ" + i + place_cityLib + libkey_city[place_cityLib]);
       if (libkey_city[place_cityLib] == "貸出可") {
-        $(`#data${i} .lendingStatus_cityLib .${place_cityLib}`).html("◯");
+        $(`#lendingStatus_cityLib .data${i} .${place_cityLib}`).html("◯");
       } else if (libkey_city[place_cityLib] == "貸出中") {
-        $(`#data${i} .lendingStatus_cityLib .${place_cityLib}`).html("△");
+        $(`#lendingStatus_cityLib .data${i} .${place_cityLib}`).html("△");
       } else {
-        $(`#data${i} .lendingStatus_cityLib .${place_cityLib}`).html("✕");
+        $(`#lendingStatus_cityLib .data${i} .${place_cityLib}`).html("✕");
       }
     }
     // univLibについて
@@ -221,16 +220,14 @@ var display_data = function(key_word,dataArr) {
     for (let index = 0; index < 3; index++) {
       var place_univLib = places_univLib[index];
       if (libkey_univ[place_univLib] == "貸出可") {
-      $(`#data${i} .lendingStatus_univLib .${place_univLib}`).html("◯");
+      $(`#lendingStatus_univLib .data${i} .${place_univLib}`).html("◯");
       } else if (libkey_univ[place_univLib] == "貸出中") {
-      $(`#data${i} .lendingStatus_univLib .${place_univLib}`).html("△");
+      $(`#lendingStatus_univLib .data${i} .${place_univLib}`).html("△");
       } else {
-      $(`#data${i} .lendingStatus_univLib .${place_univLib}`).html("✕");
+      $(`#lendingStatus_univLib .data${i} .${place_univLib}`).html("✕");
       }
     }
   }
-  //書込み後、templateを削除
-  $("#template").remove();
   // 処理が完了したら表示
   $("#output").css("visibility", "visible");
   // add();

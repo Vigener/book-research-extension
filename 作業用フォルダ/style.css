@@ -1,3 +1,16 @@
+.info {
+  max-width: 300px;
+
+}
+.title {
+  font-size: 20px;
+  font-weight: bold;
+  max-width: 300px;
+}
+.title {
+  white-space: pre-line;
+
+}
 
 .scroll_table {
     /* max-width: 800px; */
@@ -12,12 +25,15 @@
 table {
     white-space: nowrap;
     margin: 10px 0;
+    max-height: 150px;
+    /* max-width: 200px; */
   }
 
 table, td, th {
     text-align: center;
     border-collapse: collapse;
     border: 1px solid;
+    /* max-width: 200px; */
   }
   
 .scroll_table::-webkit-scrollbar {
