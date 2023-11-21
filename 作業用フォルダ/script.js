@@ -219,26 +219,40 @@ var display_data = function (key_word, dataArr, isbnData) {
     //     }
     //   }
     // }
-    for (const s_key in systemID) {
-      if (Object.hasOwnProperty.call(systemID, s_key)) {
-        const isbn = isbnData[i];
-        const system_id = systemID[s_key];
-
-        const d = current_data.calilData[0]["books"][isbn][system_id];
-        const url_city = d.reserveurl;
-        // console.log(url);
-        if (url_city != "") {
-          $(`#data${i} .lendingStatus_cityLib .link`).attr("href", url_city);
+    const data = current_data.calilData[i].books[isbnData[i]];
+    for (const s_id in data) {
+      if (Object.hasOwnProperty.call(data, s_id)) {
+        const d = data[s_id];
+        const url = d.reserveurl;
+    //     clonedElement = $("#template").clone(); //テンプレートをクローン
+    // clonedElement.attr("id", `data${i}`);
+      if (url != "") {
+          $(`#data${i} .lendingStatus_${s_id} .link`).attr("href", url);
+          // $(`#data${i} .lendingStatus_cityLib .link`).attr("href", url_city);
         }
-        console.log(current_data.calilData[i]["books"][isbn]);
-        const url_univ = current_data.calilData[i]["books"][isbn]["Univ_Tsukuba"];
-        if (url_univ != "") {
-          $(`#data${i} .lendingStatus_univLib .link`).attr("href", url_univ);
-        }
-        
-
       }
     }
+
+    // for (const s_key in systemID) {
+    //   if (Object.hasOwnProperty.call(systemID, s_key)) {
+    //     const isbn = isbnData[i];
+    //     const system_id = systemID[s_key];
+
+    //     const d = current_data.calilData[i]["books"][isbn][system_id];
+    //     const url_city = d.reserveurl;
+    //     // console.log(url);
+    //     if (url_city != "") {
+    //       $(`#data${i} .lendingStatus_cityLib .link`).attr("href", url_city);
+    //     }
+    //     console.log(current_data.calilData[i]["books"][isbn]);
+    //     const url_univ = current_data.calilData[i]["books"][isbn]["Univ_Tsukuba"];
+    //     if (url_univ != "") {
+    //       $(`#data${i} .lendingStatus_univLib .link`).attr("href", url_univ);
+    //     }
+        
+
+    //   }
+    // }
     // for (let j = 0; j < systemID.length; j++) {
     //   const isbn = isbnData[i];
     //   const system_id = systemID[j];
