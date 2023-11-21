@@ -6,42 +6,51 @@
 
 
 // 本当に表示された結果は正しいのか？ > OK
-dataArr = [];
+const dataArr = [];
+
+const systemIDs = [
+  "Ibaraki_Tsukuba",
+  "Univ_Tsukuba"
+];
 
 
 async function searchBooks() {
+  var key_word = document.getElementById("keyword").value;
+  const dataObj = {
+    keyword: key_word,
+    detailData: {
+        BookData: [],
+        calilData: []
+    }
+  };
   // $("#output").html(originalContent_output);
   console.clear()
-  var key_word = document.getElementById("keyword").value;
   var google_api_key = "https://www.googleapis.com/books/v1/volumes?q=" + encodeURIComponent(key_word) + "&printType=books&maxResults=20";
 
   try {
     var response = await fetch(google_api_key);
     var data = await response.json();
 
-    console.log(data);
+    // console.log(data);
 
-    var BookData = [];
-    var isbn10Data = [];
-    var imageLinks = [];
-    var authorData = [];
-    var publishedDateData = [];
-    var titleData = [];
-    var thumbnailData = [];
-
-    const systemId_cityLib = "Ibaraki_Tsukuba"; //つくば市立図書館のシステムID
-    const systemId_univLib = "Univ_Tsukuba"; //筑波大学附属図書館のシステムID
-
-    const apiKey_cityLib = [];
-    const apiKey_univLib = [];
+    const BookData = dataObj.detailData.BookData;
+    const calilData = dataObj.detailData.calilData;
+    const isbnData = [];
+    // var imageLinks = [];
+    // var authorData = [];
+    // var publishedDateData = [];
+    // var titleData = [];
+    // var thumbnailData = [];
 
     for (let i = 0; i < 20; i++) { // /^\d{10}$/.test(data.items[i].volumeInfo.industryIdentifiers[0].identifier)
       // var isbnTest = data.items[i].volumeInfo.industryIdentifiers[0] ? data.items[i].volumeInfo.industryIdentifiers[0].type : null;
       var isbnTest = null;
-      if (data.items[i].volumeInfo.industryIdentifiers && data.items[i].volumeInfo.industryIdentifiers.length > 0) {
-          isbnTest = data.items[i].volumeInfo.industryIdentifiers[0].type;
+      const check_isbn = data.items[i].volumeInfo.industryIdentifiers;
+      if (check_isbn && check_isbn.length > 0) {
+        isbnTest = check_isbn[0].type;
       }
       if (isbnTest === "ISBN_10" || isbnTest === "ISBN_13") {
+        // BookData.push(data.items[i].volumeInfo);
         BookData.push(data.items[i].volumeInfo);
       }
     }
@@ -49,128 +58,115 @@ async function searchBooks() {
     if (BookData == []) {
       $("#console").html("検索できる本がありませんでした。");
     }
+    // console.log(BookData);
 
-    for (let i = 0; i < (BookData.length > 3 ? 3 : BookData.length); i++) { //i < 3にすることで三冊までデータを持ってくる
-      // BookData[i] = data.items[i].volumeInfo;
-      isbn10Data[i] = BookData[i].industryIdentifiers[0].identifier;
-      imageLinks[i] = BookData[i].imageLinks;
-      authorData[i] = BookData[i].authors;
-      publishedDateData[i] = BookData[i].publishedDate;
-      titleData[i] = BookData[i].title;
-      thumbnailData[i] = imageLinks[i] ? imageLinks[i].thumbnail : '画像なし';
+    const fetch_calil = async (apiKey, i) => {
+      try {
+        const response = await fetch(apiKey);
+        const data = await response.json();
+        // console.log(i);
+        if (data.continue === 1) {
+          fetch_calil(apiKey, i); // 再帰的にリクエストを行う
+        } else {
+          // console.log(data);
+          calilData[i] = data;
+          if(i == num_of_display - 1) {
+            // const datastr = JSON.stringify(dataObj);
+            // console.log(datastr);
+            // console.log(dataObj);
+            dataArr.push(dataObj);
+            console.log(dataArr);
+            display_data(key_word, dataArr, isbnData);
+          }
+        }
+      } catch (error) {
+        console.log('エラーが発生しました', error);
+      }
+    };
+
+    const systemId_cityLib = "Ibaraki_Tsukuba";
+    const systemId_univLib = "Univ_Tsukuba";
+   
+
+
+
+    const len_Data = BookData.length
+    const num_of_display = len_Data > 3 ? 3 : len_Data; //　何冊の本を検索結果として表示するか設定
+    for (let i = 0; i < num_of_display; i++) {
+      // dataObj.BookData[i] = data.items[i].volumeInfo;
+      isbnData[i] = BookData[i].industryIdentifiers[0].identifier;
+      // imageLinks[i] = BookData[i].imageLinks;
+      // authorData[i] = BookData[i].authors;
+      // publishedDateData[i] = BookData[i].publishedDate;
+      // titleData[i] = BookData[i].title;
+      // thumbnailData[i] = imageLinks[i] ? imageLinks[i].thumbnail : '画像なし';
       // thumbnailData[i] = imageLinks[i].thumbnail;
-      // console.log(isbn10Data[i]);
-      apiKey_cityLib[i] = "https://api.calil.jp/check?appkey={468b8efa42978747b9bca6d60a9c384d}&isbn=" + isbn10Data[i] + "&systemid=" + systemId_cityLib + "&callback=no";
-      apiKey_univLib[i] = "https://api.calil.jp/check?appkey={468b8efa42978747b9bca6d60a9c384d}&isbn=" + isbn10Data[i] + "&systemid=" + systemId_univLib + "&callback=no";
+      // console.log(isbnData[i]);
+      const ISBN_list = isbnData.join(',');
+      const SYSTEM_ID_list = systemIDs.join(','); //検索したい図書館のシステムIDを,で区切りながら羅列する 
+      let apiKey = "https://api.calil.jp/check?appkey={468b8efa42978747b9bca6d60a9c384d}&isbn=" + ISBN_list + "&systemid=" + SYSTEM_ID_list + "&callback=no";
+      fetch_calil(apiKey, i);
     }
 
-    const fetchData_cityLib = async (i) => {
-      try {
-        const response = await fetch(apiKey_cityLib[i]);
-        const data = await response.json();
 
-        if (data.continue === 1) {
-          await fetchData_cityLib(i); // 再帰的にリクエストを行う
-        } else {
-          // console.log(data);
-          processCityLibData(data, i);
-        }
-      } catch (error) {
-        console.log('エラーが発生しました', error);
-      }
-    };
 
-    const fetchData_univLib = async (i) => {
-      try {
-        const response = await fetch(apiKey_univLib[i]);
-        const data = await response.json();
+    // for (let i = 0; i < num_of_display.length; i++) {
+    //   fetch_calil(i);
+    // }
 
-        if (data.continue === 1) {
-          await fetchData_univLib(i); // 再帰的にリクエストを行う
-        } else {
-          // console.log(data);
-          processUnivLibData(data, i);
-        }
-      } catch (error) {
-        console.log('エラーが発生しました', error);
-      }
-    };
+      // const processUnivLibData = (data, i) => {
+      //   var calilData_univ_N = data.books[isbnData[i]][systemId_univLib];
+      //   var url_univ = calilData_univ_N.reserveurl;
+      //   calilData_univ[i] = calilData_univ_N;
+      //   urlList_univ[i] = url_univ;
+      // };
 
-    var urlList_city = [];
-    var urlList_univ = [];
-    var calilData_city = {};
-    var calilData_univ = {};
 
-    const processCityLibData = (data, i) => {
-      var calilData_city_N = data.books[isbn10Data[i]][systemId_cityLib];
-      var url_city = calilData_city_N.reserveurl;
-      calilData_city[i] = calilData_city_N;
-      urlList_city[i] = url_city;
-    };
 
-    const processUnivLibData = (data, i) => {
-      var calilData_univ_N = data.books[isbn10Data[i]][systemId_univLib];
-      var url_univ = calilData_univ_N.reserveurl;
-      calilData_univ[i] = calilData_univ_N;
-      urlList_univ[i] = url_univ;
-    };
 
-    for (let i = 0; i < isbn10Data.length; i++) {
-      fetchData_cityLib(i);
-      fetchData_univLib(i);
-    }
 
-    var calilData = {
-      cityLib : calilData_city,
-      univLib : calilData_univ
-    }
 
-    var detail_data = {
-      authorData : authorData,
-      publishedDateData : publishedDateData,
-      titleData : titleData,
-      thumbnailData : thumbnailData,
-      calilData : calilData,
-      urlData_city : urlList_city,
-      urlData_univ : urlList_univ
-    };
+    // // カウンタ変数を初期化
+    // let cityLibCount = 0;
+    // let univLibCount = 0;
 
-    var dataObj = {
-      keyword : key_word,
-      detailData : detail_data
-    };
-    dataArr.push(dataObj);
-    console.log(dataArr);
+    // const fetchDataCityLib = async (i) => {
+    //   await fetchData_cityLib(i);
+    //   cityLibCount++; // cityLib の非同期処理が完了したらカウントアップ
+    //   checkAndDisplayData();
+    // };
+    
+    // const fetchDataUnivLib = async (i) => {
+    //   await fetchData_univLib(i);
+    //   univLibCount++; // univLib の非同期処理が完了したらカウントアップ
+    //   checkAndDisplayData();
+    // };
 
-    // カウンタ変数を初期化
-    let cityLibCount = 0;
-    let univLibCount = 0;
+    // const checkAndDisplayData = () => {
+    //   // 両方の非同期処理が完了し、カウントが titleData.length とそれぞれ同じになったら display_data を実行
+    //   if (cityLibCount === titleData.length && univLibCount === titleData.length) {
+    //     display_data(key_word, dataArr);
+    //   }
+    // };
 
-    const fetchDataCityLib = async (i) => {
-      await fetchData_cityLib(i);
-      cityLibCount++; // cityLib の非同期処理が完了したらカウントアップ
-      checkAndDisplayData();
-    };
+    // for (let i = 0; i < isbnData.length; i++) {
+    //   // cityLib と univLib の非同期処理を独立して実行
+    //   fetchDataCityLib(i);
+    //   fetchDataUnivLib(i);
+    // }
 
-    const fetchDataUnivLib = async (i) => {
-      await fetchData_univLib(i);
-      univLibCount++; // univLib の非同期処理が完了したらカウントアップ
-      checkAndDisplayData();
-    };
+    // var detail_data = {
+    //   authorData: authorData,
+    //   publishedDateData: publishedDateData,
+    //   titleData: titleData,
+    //   thumbnailData: thumbnailData,
+    //   calilData: calilData,
+    //   urlData_city: urlList_city,
+    //   urlData_univ: urlList_univ
+    // };
 
-    const checkAndDisplayData = () => {
-      // 両方の非同期処理が完了し、カウントが titleData.length とそれぞれ同じになったら display_data を実行
-      if (cityLibCount === titleData.length && univLibCount === titleData.length) {
-        display_data(key_word, dataArr);
-      }
-    };
-
-    for (let i = 0; i < isbn10Data.length; i++) {
-      // cityLib と univLib の非同期処理を独立して実行
-      fetchDataCityLib(i);
-      fetchDataUnivLib(i);
-    }
-
+    // dataArr.push(dataObj);
+    // console.log(dataArr);
   } catch (error) {
     console.log("エラーが発生しました", error);
   }
@@ -178,28 +174,43 @@ async function searchBooks() {
 
 //test
 //表への表示を行う関数
-var display_data = function(key_word,dataArr) {
-  var matchingItem = dataArr.find(function(item) {
+var display_data = function (key_word, dataArr, isbnData) {
+  var matchingItem = dataArr.find(function (item) {
     return item.keyword === key_word;
   });
   var current_data = matchingItem ? matchingItem.detailData : null;
-  for (let i = 0; i < current_data.titleData.length; i++) {
+  console.log(current_data);
+  for (let i = 0; i < current_data.calilData.length; i++) {
     let clonedElement = $("#template").clone(); //テンプレートをクローン
     clonedElement.attr("id", `data${i}`); //IDを変更
     $("#output_table").append(clonedElement); //クローンした要素を追加
-    var img_scr = "<img src='" + current_data.thumbnailData[i] + "'/>"; // 本の表紙をHTMLに表示
-    $(`#data${i} .image`).html(img_scr);
-    $(`#data${i} .title`).html(current_data.titleData[i]); //本のタイトルを表示
-    $(`#data${i} .author`).html("著者: " + current_data.authorData[i]); //本の著者を表示
-    $(`#data${i} .publishDate`).html("出版年月日: " + current_data.publishedDateData[i]); //出版年月日を表示
+    // imageLinks[i] = BookData[i].imageLinks;
+      // authorData[i] = BookData[i].authors;
+      // publishedDateData[i] = BookData[i].publishedDate;
+      // titleData[i] = BookData[i].title;
+      // thumbnailData[i] = imageLinks[i] ? imageLinks[i].thumbnail : '画像なし';
+      // thumbnailData[i] = imageLinks[i].thumbnail;
+    if (current_data.BookData[i].imageLinks.thumbnail) {
+      var img_scr = "<img src='" + current_data.BookData[i].imageLinks.thumbnail + "'/>"; // 本の表紙をHTMLに表示
+      $(`#data${i} .image`).html(img_scr);
+    }
+    $(`#data${i} .title`).html(current_data.BookData[i].title); //本のタイトルを表示
+    $(`#data${i} .author`).html("著者: " + current_data.BookData[i].author); //本の著者を表示
+    $(`#data${i} .publishDate`).html("出版年月日: " + current_data.BookData[i].publishedDate); //出版年月日を表示
     //蔵書状況を表示
     //URLのリンクを追加
-    if (current_data.urlData_city[i]){
-      $(`#data${i} .lendingStatus_cityLib .link`).attr("href", current_data.urlData_city[i]);
+    const isbn = isbnData[i];
+    const systemid = systemIDs[0];
+    // const url = current_data.calilData[i].books[isbn][systemid]?.
+    const url = current_data.calilData[i].books[isbn][systemid].reserveuel;
+    console.log(url);
+    if (url != "") {
+      $(`#data${i} .lendingStatus_cityLib .link`).attr("href", url);
     }
-    if (current_data.urlData_univ[i]) {
-      $(`#data${i} .lendingStatus_univLib .link`).attr("href", current_data.urlData_univ[i]);
-    }
+
+    // if (current_data.urlData_univ[i]) {
+    //   $(`#data${i} .lendingStatus_univLib .link`).attr("href", current_data.urlData_univ[i]);
+    // }
     // cityLibについて
     const places_cityLib = ["中央館", "谷田部", "筑波", "小野川", "茎崎", "自動車"];
     // var places_cityLib = Object.keys(current_data.calilData.cityLib[i].libkey);
@@ -221,15 +232,15 @@ var display_data = function(key_word,dataArr) {
     for (let index = 0; index < 3; index++) {
       var place_univLib = places_univLib[index];
       if (libkey_univ[place_univLib] == "貸出可") {
-      $(`#data${i} .lendingStatus_univLib .${place_univLib}`).html("◯");
+        $(`#data${i} .lendingStatus_univLib .${place_univLib}`).html("◯");
       } else if (libkey_univ[place_univLib] == "貸出中") {
-      $(`#data${i} .lendingStatus_univLib .${place_univLib}`).html("△");
+        $(`#data${i} .lendingStatus_univLib .${place_univLib}`).html("△");
       } else {
-      $(`#data${i} .lendingStatus_univLib .${place_univLib}`).html("✕");
+        $(`#data${i} .lendingStatus_univLib .${place_univLib}`).html("✕");
       }
     }
   }
-  //書込み後、templateを削除
+  // 書込み後、templateを削除
   $("#template").remove();
   // 処理が完了したら表示
   $("#output").css("visibility", "visible");
@@ -240,9 +251,9 @@ var display_data = function(key_word,dataArr) {
 };
 
 
-// var saveStorage = function(key,his){
-//   localStorage.setItem(key,JSON.stringify(his));
-// };
+var saveStorage = function (key, his) {
+  localStorage.setItem(key, JSON.stringify(his));
+};
 
 // var getStorage = function(key){
 //   var obj = localStorage.getItem(key);
@@ -300,7 +311,7 @@ var display_data = function(key_word,dataArr) {
 //test
 
 
-$(document).ready(function() {
+$(document).ready(function () {
   $("#output").css("visibility", "hidden");
   $("#keyword").focus();
   // readHistory();
@@ -308,11 +319,11 @@ $(document).ready(function() {
 
 // var originalContent_output = $("#output").html(); //初期状態を保存しておく
 
-$("#begin_search").click(function() {
+$("#begin_search").click(function () {
   searchBooks();
 });
 
-$("#keyword").keypress(function(event) {
+$("#keyword").keypress(function (event) {
   if (event.key === "Enter") {
     searchBooks();
   }
