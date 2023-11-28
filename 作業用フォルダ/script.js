@@ -219,9 +219,15 @@ var display_data = function (key_word, dataArr, isbnData) {
     //     }
     //   }
     // }
+
     const data = current_data.calilData[i].books[isbnData[i]];
     for (const s_id in data) {
       if (Object.hasOwnProperty.call(data, s_id)) {
+        // テンプレートからクローン
+        const cloned_ls_template = $("#lendingStatus_template").clone();
+        cloned_ls_template.attr("class", `lendingStatus_${s_id}`);
+        $("#lendingStatus_template").after(cloned_ls_template);
+
         const d = data[s_id];
         const url = d.reserveurl;
     //     clonedElement = $("#template").clone(); //テンプレートをクローン
@@ -232,24 +238,6 @@ var display_data = function (key_word, dataArr, isbnData) {
         }
       }
     }
-
-    // for (const s_key in systemID) {
-    //   if (Object.hasOwnProperty.call(systemID, s_key)) {
-    //     const isbn = isbnData[i];
-    //     const system_id = systemID[s_key];
-
-    //     const d = current_data.calilData[i]["books"][isbn][system_id];
-    //     const url_city = d.reserveurl;
-    //     // console.log(url);
-    //     if (url_city != "") {
-    //       $(`#data${i} .lendingStatus_cityLib .link`).attr("href", url_city);
-    //     }
-    //     console.log(current_data.calilData[i]["books"][isbn]);
-    //     const url_univ = current_data.calilData[i]["books"][isbn]["Univ_Tsukuba"];
-    //     if (url_univ != "") {
-    //       $(`#data${i} .lendingStatus_univLib .link`).attr("href", url_univ);
-    //     }
-        
 
     //   }
     // }
