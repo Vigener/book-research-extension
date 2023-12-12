@@ -9,8 +9,7 @@
 
 
 // 本当に表示された結果は正しいのか？ > OK
-const originalContent = $("#output_table").html();
-const originalContent_keyword_area = $("#display_search_keyword").html();
+
 const originalContent_template = $("#template").html(); //テンプレートを保存しておく。リロードしてもデータを残したりするならローカルストレージに置く必要がありそう
 const dataArr = [];
 
@@ -96,20 +95,14 @@ async function searchBooks() {
 
 //test
 //表への表示を行う関数
-const display_data = function (key_word, dataArr, isbnData) {
-  const matchingItem = dataArr.find(function (item) {
+var display_data = function (key_word, dataArr, isbnData) {
+  var matchingItem = dataArr.find(function (item) {
     return item.keyword === key_word;
   });
-  const current_data = matchingItem ? matchingItem.detailData : null;
+  var current_data = matchingItem ? matchingItem.detailData : null;
   console.log(current_data);
   console.log(current_data.calilData[0].books);
   const display_count = Object.keys(current_data.calilData[0].books).length;
-  //検索キーワードを表示するヘッダーを作成
-  let clonedKeywordArea = $('#display_search_keyword').clone(); //「」の検索結果　と表示するエリアをクローン
-  clonedKeywordArea.attr("class", `${key_word}`);
-  $("#output_table").append(clonedKeywordArea);
-  $(`.${key_word} .keyword_header`).html("「" + key_word + "」の検索結果");
-  //それぞれの本のデータを表示
   for (let i = 0; i < display_count; i++) {
     let clonedElement = $("#template").clone(); //テンプレートをクローン
     clonedElement.attr("id", `data${i}`); //IDを変更
@@ -155,7 +148,6 @@ const display_data = function (key_word, dataArr, isbnData) {
     }
   }
   // 書込み後、templateを削除
-  $("#display_search_keyword").remove();
   $("#template").remove();
   // $("#template").css("visibility", "hidden");
   // 処理が完了したら表示
