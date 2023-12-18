@@ -7,9 +7,18 @@
 //　か-リルAPIの開発元が信頼できるかどうか
 //　実際の情報と一致していることを見せる（発表時）
 
+// 同じキーワードで検索した際に一番最新のデータが持ってこれたら嬉しい
+// dataを取得した時間も表示したい
+
+// 問題点>>>
+//キーワードのはじめに空白が入っているとidの設定がうまく行かず、結果が表示されない
+
+//取得時間、✕のみの本を表示しない、空白処理・idの付けかた工夫する
+
+
 
 // 本当に表示された結果は正しいのか？ > OK
-const originalContent = $("#output_table").html();
+const originalContent = $("#output_table").clone();
 const originalContent_keyword_area = $("#display_search_keyword").html();
 const originalContent_template = $("#template").html(); //テンプレートを保存しておく。リロードしてもデータを残したりするならローカルストレージに置く必要がありそう
 const dataArr = [];
@@ -104,27 +113,37 @@ const display_data = function (key_word, dataArr, isbnData) {
   console.log(current_data);
   console.log(current_data.calilData[0].books);
   const display_count = Object.keys(current_data.calilData[0].books).length;
-  //検索キーワードを表示するヘッダーを作成
-  let clonedKeywordArea = $('#display_search_keyword').clone(); //「」の検索結果　と表示するエリアをクローン
-  clonedKeywordArea.attr("class", `${key_word}`);
-  $("#output_table").append(clonedKeywordArea);
-  $(`.${key_word} .keyword_header`).html("「" + key_word + "」の検索結果");
+  let displayArea = $('#template').clone();
+  displayArea.attr("id", '');
+  displayArea.attr("class", `${key_word}`);
+  $("#output").prepend(displayArea);
+  // //検索キーワードを表示するヘッダーを作成
+  // let clonedKeywordArea = $('#display_search_keyword').clone(); //「」の検索結果　と表示するエリアをクローン
+  // clonedKeywordArea.attr("class", `${key_word}`);
+  // $("#output_table").append(clonedKeywordArea);
+  $(`.${key_word} .keyword_area .keyword_header`).html("「" + key_word + "」の検索結果");
   //それぞれの本のデータを表示
+  $(`.${key_word} .book_data_area`).remove();
   for (let i = 0; i < display_count; i++) {
-    let clonedElement = $("#template").clone(); //テンプレートをクローン
-    clonedElement.attr("id", `data${i}`); //IDを変更
-    $("#output_table").append(clonedElement); //クローンした要素を追加
+    let clonedElement = $(`#template .book_data_area`).clone();
+    clonedElement.attr("id", '');
+    clonedElement.attr("class", `data${i}_${key_word}`);
+    $(`.${key_word}`).append(clonedElement);
+    // let clonedElement = $("#template").clone(); //テンプレートをクローン
+    // clonedElement.attr("id", `data${i}`); //IDを変更
+    // $("#output_table").append(clonedElement); //クローンした要素を追加
     if (current_data.BookData[i].imageLinks.thumbnail) {
       var img_scr = "<img src='" + current_data.BookData[i].imageLinks.thumbnail + "'/>"; // 本の表紙をHTMLに表示
-      $(`#data${i} .image`).html(img_scr);
+      $(`.data${i}_${key_word} .image`).html(img_scr);
     }
-    $(`#data${i} .title`).html(current_data.BookData[i].title); //本のタイトルを表示
-    $(`#data${i} .author`).html("著者: " + current_data.BookData[i].authors); //本の著者を表示
-    $(`#data${i} .publishDate`).html("出版年月日: " + current_data.BookData[i].publishedDate); //出版年月日を表示
+    $(`.data${i}_${key_word} .title`).html(current_data.BookData[i].title); //本のタイトルを表示
+    $(`.data${i}_${key_word} .author`).html("著者: " + current_data.BookData[i].authors); //本の著者を表示
+    $(`.data${i}_${key_word} .publishDate`).html("出版年月日: " + current_data.BookData[i].publishedDate); //出版年月日を表示
     //蔵書状況を表示
     //URLのリンクを追加
-    $(`#data${i} .ls_area .lendingStatus_cityLib .link`).attr("href", current_data.calilData[0].books[isbnData[i]].Ibaraki_Tsukuba.reserveurl);
-    $(`#data${i} .ls_area .lendingStatus_univLib .link`).attr("href", current_data.calilData[0].books[isbnData[i]].Univ_Tsukuba.reserveurl);
+    // const link_cityLib =
+    $(`.data${i}_${key_word} .ls_area .lendingStatus_cityLib .link`).attr("href", current_data.calilData[0].books[isbnData[i]].Ibaraki_Tsukuba.reserveurl);
+    $(`.data${i}_${key_word} .ls_area .lendingStatus_univLib .link`).attr("href", current_data.calilData[0].books[isbnData[i]].Univ_Tsukuba.reserveurl);
     // cityLibについて
     const places_cityLib = ["中央館", "谷田部", "筑波", "小野川", "茎崎", "自動車"];
     const libkey_city = current_data.calilData[0]["books"][isbnData[i]][systemID["つくば市立図書館"]].libkey;
@@ -132,11 +151,11 @@ const display_data = function (key_word, dataArr, isbnData) {
     for (let index = 0; index < 6; index++) {
       var place_cityLib = places_cityLib[index];
       if (libkey_city[place_cityLib] == "貸出可") {
-        $(`#data${i} .lendingStatus_cityLib .${place_cityLib}`).html("◯");
+        $(`.data${i}_${key_word} .lendingStatus_cityLib .${place_cityLib}`).html("◯");
       } else if (libkey_city[place_cityLib] == "貸出中") {
-        $(`#data${i} .lendingStatus_cityLib .${place_cityLib}`).html("△");
+        $(`.data${i}_${key_word} .lendingStatus_cityLib .${place_cityLib}`).html("△");
       } else {
-        $(`#data${i} .lendingStatus_cityLib .${place_cityLib}`).html("✕");
+        $(`.data${i}_${key_word} .lendingStatus_cityLib .${place_cityLib}`).html("✕");
       }
     }
     // univLibについて
@@ -146,18 +165,18 @@ const display_data = function (key_word, dataArr, isbnData) {
     for (let index = 0; index < 3; index++) {
       var place_univLib = places_univLib[index];
       if (libkey_univ[place_univLib] == "貸出可") {
-        $(`#data${i} .lendingStatus_univLib .${place_univLib}`).html("◯");
+        $(`.data${i}_${key_word} .lendingStatus_univLib .${place_univLib}`).html("◯");
       } else if (libkey_univ[place_univLib] == "貸出中") {
-        $(`#data${i} .lendingStatus_univLib .${place_univLib}`).html("△");
+        $(`.data${i}_${key_word} .lendingStatus_univLib .${place_univLib}`).html("△");
       } else {
-        $(`#data${i} .lendingStatus_univLib .${place_univLib}`).html("✕");
+        $(`.data${i}_${key_word} .lendingStatus_univLib .${place_univLib}`).html("✕");
       }
     }
   }
   // 書込み後、templateを削除
-  $("#display_search_keyword").remove();
-  $("#template").remove();
-  // $("#template").css("visibility", "hidden");
+  // $("#display_search_keyword").remove();
+  // $("#template").remove();
+  // $(`.${key_word} #book_data_area`).remove();
   // 処理が完了したら表示
   $("#output").css("visibility", "visible");
   // add();
@@ -167,9 +186,9 @@ const display_data = function (key_word, dataArr, isbnData) {
 };
 
 
-var saveStorage = function (key, his) {
-  localStorage.setItem(key, JSON.stringify(his));
-};
+// var saveStorage = function (key, his) {
+//   localStorage.setItem(key, JSON.stringify(his));
+// };
 
 // var getStorage = function(key){
 //   var obj = localStorage.getItem(key);
@@ -228,7 +247,7 @@ var saveStorage = function (key, his) {
 
 
 $(document).ready(function () {
-  $("#output").css("visibility", "hidden");
+  // $("#output").css("visibility", "hidden");
   $("#keyword").focus();
   // readHistory();
 });

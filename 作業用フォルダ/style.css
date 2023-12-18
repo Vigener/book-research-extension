@@ -1,3 +1,7 @@
+#template {
+  visibility: hidden;
+}
+
 .info {
   max-width: 300px;
 
