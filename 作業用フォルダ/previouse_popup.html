@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="favicon.ico">
+  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="stylesheet" href="style.css">
+  <script src="jquery-3.7.0.min.js"></script>
+</head>
+<body>
+    <!-- <label for="site-search">検索キーワードを入力:</label> -->
+    <input type="search" id="keyword" name="keyword" placeholder="検索キーワードを入力">
+    <button id="begin_search">検索</button>
+    <div id="output">
+      <h2>検索結果</h2>
+      <table>
+        <tr id="image">
+          <th></th>
+          <th class="data0"></th>
+          <th class="data1"></th>
+          <th class="data2"></th>
+        </tr>
+        <tr id="title">
+          <th>タイトル</th>
+          <td class="data0"></td>
+          <td class="data1"></td>
+          <td class="data2"></td>
+        </tr>
+        <tr id="author">
+          <th>著者</th>
+          <td class="data0"></td>
+          <td class="data1"></td>
+          <td class="data2"></td>
+        </tr>
+        <tr id="publishDate">
+          <th>出版年月日</th>
+          <td class="data0"></td>
+          <td class="data1"></td>
+          <td class="data2"></td>
+        </tr>
+        <tr id="lendingStatus_cityLib">
+          <th rowspan="2">蔵書状況<br>◯：貸出可<br>△：貸出中<br>✕：蔵書無</th>
+          <td class="data0 scroll_table">
+            <table>
+              <tr>
+                <th colspan="3"><a target="_blank" rel="noopener" class="link">つくば市立図書館</a></th>
+              </tr>
+              <tr>
+                <th>中央館</th>
+                <th>谷田部</th>
+                <th>筑波</th>
+              </tr>
+              <tr>
+                <td class="中央館"></td>
+                <td class="谷田部"></td>
+                <td class="筑波"></td>
+              </tr>
+              <tr>
+                <th>小野川</th>
+                <th>茎崎</th>
+                <th>自動車</th>
+              </tr>
+              <tr>
+                <td class="小野川"></td>
+                <td class="茎崎"></td>
+                <td class="自動車"></td>
+              </tr>
+            </table>
+          </td>
+          <td class="data1 scroll_table">
+            <table>
+              <tr>
+                <th colspan="3"><a target="_blank" rel="noopener" class="link">つくば市立図書館</a></th>
+              </tr>
+              <tr>
+                <th>中央館</th>
+                <th>谷田部</th>
+                <th>筑波</th>
+              </tr>
+              <tr>
+                <td class="中央館"></td>
+                <td class="谷田部"></td>
+                <td class="筑波"></td>
+              </tr>
+              <tr>
+                <th>小野川</th>
+                <th>茎崎</th>
+                <th>自動車</th>
+              </tr>
+              <tr>
+                <td class="小野川"></td>
+                <td class="茎崎"></td>
+                <td class="自動車"></td>
+              </tr>
+            </table>
+          </td>
+          <td class="data2 scroll_table">
+            <table>
+              <tr>
+                <th colspan="3"><a target="_blank" rel="noopener" class="link">つくば市立図書館</a></th>
+              </tr>
+              <tr>
+                <th>中央館</th>
+                <th>谷田部</th>
+                <th>筑波</th>
+              </tr>
+              <tr>
+                <td class="中央館"></td>
+                <td class="谷田部"></td>
+                <td class="筑波"></td>
+              </tr>
+              <tr>
+                <th>小野川</th>
+                <th>茎崎</th>
+                <th>自動車</th>
+              </tr>
+              <tr>
+                <td class="小野川"></td>
+                <td class="茎崎"></td>
+                <td class="自動車"></td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr id="lendingStatus_univLib">
+          <td class="data0 scroll_table">
+            <table>
+              <tr>
+                <th colspan="3"><a target="_blank" rel="noopener" class="link">筑波大学附属図書館</a></th>
+              </tr>
+              <tr>
+                <th>中央</th>
+                <th>医学</th>
+                <th>図情</th>
+              </tr>
+              <tr>
+                <td class="中央"></td>
+                <td class="医学"></td>
+                <td class="図情"></td>
+              </tr>
+            </table>
+          </td>
+          <td class="data1 scroll_table">
+            <table>
+              <tr>
+                <th colspan="3"><a target="_blank" rel="noopener" class="link">筑波大学附属図書館</a></th>
+              </tr>
+              <tr>
+                <th>中央</th>
+                <th>医学</th>
+                <th>図情</th>
+              </tr>
+              <tr>
+                <td class="中央"></td>
+                <td class="医学"></td>
+                <td class="図情"></td>
+              </tr>
+            </table>
+          </td>
+          <td class="data2 scroll_table">
+            <table>
+              <tr>
+                <th colspan="3"><a target="_blank" rel="noopener" class="link">筑波大学附属図書館</a></th>
+              </tr>
+              <tr>
+                <th>中央</th>
+                <th>医学</th>
+                <th>図情</th>
+              </tr>
+              <tr>
+                <td class="中央"></td>
+                <td class="医学"></td>
+                <td class="図情"></td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div id="history">
+      <h2>検索履歴</h2>
+      <button type="button" id="btnReset">履歴の削除</button>
+      <div id="hisArea">
+      </div>
+    </div>
+  <script src="script.js"></script>
+</body>
+</html>

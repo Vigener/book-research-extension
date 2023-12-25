@@ -41,7 +41,7 @@ async function searchBooks() {
   // $("#output").html(originalContent_output);
   console.clear()
   var google_api_key = "https://www.googleapis.com/books/v1/volumes?q=" + encodeURIComponent(key_word) + "&printType=books&maxResults=20";
-
+  console.log(google_api_key);
   try {
     var response = await fetch(google_api_key);
     var data = await response.json();
