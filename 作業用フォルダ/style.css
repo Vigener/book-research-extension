@@ -4,6 +4,9 @@
 
 .info {
   max-width: 300px;
+  white-space: nowrap; /* 子要素を折り返さないようにする */
+  overflow: hidden; /* 隠れた内容を非表示にする */
+  text-overflow: ellipsis; /* 隠れた内容を省略記号で表示する（必要に応じて）*/
 
 }
 .title {
@@ -13,8 +16,13 @@
 }
 .title {
   white-space: pre-line;
-
 }
+
+.info p {
+  white-space: normal; /* 子要素の折り返しを許可する */
+  margin: 0; /* デフォルトのマージンを削除する（必要に応じて）*/
+}
+
 
 .scroll_table {
     /* max-width: 800px; */
