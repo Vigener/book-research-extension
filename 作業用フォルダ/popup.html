@@ -14,7 +14,9 @@
   <input type="search" id="keyword" name="keyword" placeholder="検索キーワードを入力">
   <button id="begin_search">検索</button>
   <div id="console"></div>
-  <h2>↓検索結果</h2><div>◯：貸出可, △：貸出中, ✕：蔵書無</div>
+  <h2 id="status">検索結果</h2><div>◯：貸出可, △：貸出中, ✕：蔵書無</div>
+  <!-- 検索結果を削除するボタンを作る -->
+  <button type="button" id="btnReset">検索結果の削除</button>
   <div id="output">
     <!-- <table id="output_table"> -->
   </div>
@@ -26,7 +28,7 @@
   </div> -->
   <table id="template">
     <tr class="keyword_area">
-      <th colspan="3" class="keyword_header"></th>
+      <th colspan="3" class="item_flex"><div class="keyword_header"></div><button type="button" class="btnResetForEach">削除</button></th>
     </tr>
     <!-- <tr id="template"> -->
     <tr class="book_data_area">

@@ -18,9 +18,9 @@
 
 
 // 本当に表示された結果は正しいのか？ > OK
-const originalContent = $("#output_table").clone();
-const originalContent_keyword_area = $("#display_search_keyword").html();
-const originalContent_template = $("#template").html(); //テンプレートを保存しておく。リロードしてもデータを残したりするならローカルストレージに置く必要がありそう
+// const originalContent = $("#output_table").clone();
+// const originalContent_keyword_area = $("#display_search_keyword").html();
+// const originalContent_template = $("#template").html(); //テンプレートを保存しておく。リロードしてもデータを残したりするならローカルストレージに置く必要がありそう
 const dataArr = [];
 
 const systemID = {
@@ -30,16 +30,27 @@ const systemID = {
 
 
 async function searchBooks() {
+
+  // searchBooksの実行が完全に終了するまで、#statusのテキストを「検索中...」にする
+  $("#status").text("検索中...");
   var userInput = document.getElementById("keyword").value;
   var key_word = userInput.replace(/[\s　]/g, "_");
+
+  // localstorageのkeyを確認して、同じキーワードのkeyがあるか確認し、keywordが被らないように"keyword_1","keyword_2"というように数字を足してkeywordを設定、なければそのまま設定する
+  const keys = Object.keys(localStorage);
+  const matchingKeys = keys.filter(function (key) {
+    return key.includes(key_word);
+  });
+  const key = matchingKeys.length > 0 ? `${key_word}_${matchingKeys.length + 1}` : key_word;
+
   const dataObj = {
-    keyword: key_word,
+    keyword: key,
     detailData: {
       BookData: [],
       calilData: []
     }
   };
-  
+
   // $("#output").html(originalContent_output);
   console.clear()
   var google_api_key = "https://www.googleapis.com/books/v1/volumes?q=" + encodeURIComponent(userInput) + "&printType=books&maxResults=20";
@@ -56,11 +67,11 @@ async function searchBooks() {
     for (let i = 0; i < 20; i++) { // /^\d{10}$/.test(data.items[i].volumeInfo.industryIdentifiers[0].identifier)
       var isbnTest = null;
       function checkImageLinks(data) {
-        for (let i = 0; i < data.items.length; i++) {
-          if (data.items[i].volumeInfo.hasOwnProperty('imageLinks')) {
-            // imageLinksオブジェクトが存在する場合の処理
-            BookData.push(data.items[i].volumeInfo);
-          }
+        // for (let i = 0; i < data.items.length; i++) {
+        // }
+        if (data.items[i].volumeInfo.hasOwnProperty('imageLinks')) {
+          // imageLinksオブジェクトが存在する場合の処理
+          BookData.push(data.items[i].volumeInfo);
         }
       }
       const check_isbn = data.items[i].volumeInfo.industryIdentifiers;
@@ -71,9 +82,9 @@ async function searchBooks() {
         checkImageLinks(data);
       }
     }
-    const bookData_json = BookData
-    console.log("これはbookdataです");
-    console.log(bookData_json);
+    // const bookData_json = BookData
+    // console.log("これはbookdataです");
+    // console.log(bookData_json);
     //検索できるbookdataがあるかどうか確認
     if (BookData == []) {
       $("#console").html("検索できる本がありませんでした。");
@@ -96,12 +107,25 @@ async function searchBooks() {
             return `${month}/${day} ${hours}:${minutes}`;
           })();
           dataObj.obtained_time = obtained_time; // Add obtained_time to dataObj
+          dataObj.userInput = userInput;
           dataArr.push(dataObj);
           console.log(dataArr);
           // Save dataObj to local storage
-          localStorage.setItem(dataObj.keyword, JSON.stringify(dataObj));
-
-          display_data(userInput, key_word, obtained_time, dataArr, isbnData);
+          // localstorageのkeyを確認して、同じキーワードのkeyがあるか確認し、keywordが被らないように"keyword_1","keyword_2"というように数字を足してkeywordを設定、なければそのまま設定する
+          // const keys = Object.keys(localStorage);
+          // const matchingKeys = keys.filter(function (key) {
+          //   return key.includes(key_word);
+          // });
+          // const key = matchingKeys.length > 0 ? `${key_word}_${matchingKeys.length + 1}` : key_word;
+          localStorage.setItem(key, JSON.stringify(dataObj));
+          // display_data(userInput, key_word, obtained_time, dataArr);
+          display_data_ver2(dataObj);
+          $("#output").css("visibility", "visible");
+          // add();
+          // readHistory();
+          $("#keyword").val('');
+          $("#keyword").focus();
+          $("#status").text("検索結果");
         }
       } catch (error) {
         console.log('エラーが発生しました', error);
@@ -126,15 +150,125 @@ async function searchBooks() {
 }
 
 
-
 //test
+// localstorageを削除する関数
+const deleteStorage = function (key) {
+  localStorage.removeItem(key);
+};
+
+// id = "btnReset"が押されたときにdeleteStorageを実行する
+$("#btnReset").on('click', function () {
+  const keys = Object.keys(localStorage);
+  keys.forEach(function (key) {
+    deleteStorage(key);
+  });
+  location.reload();
+});
+
+// .btnResetForEachが押されたときにその要素のidを取得し、そのidを持つlocalstorageを削除する
+$("#output").on('click', '.btnResetForEach', function () {
+  const key = $(this).attr("id");
+  deleteStorage(key);
+  $(`.${key}`).remove();
+  location.reload();
+});
+
+
+
 //表への表示を行う関数
-const display_data = function (userInput, key_word, obtained_time, dataArr, isbnData) {
+const display_data_ver2 = function (dataObj) {
+  const key_word = dataObj.keyword;
+  const obtained_time = dataObj.obtained_time;
+  const userInput = dataObj.userInput;
+  const current_data = dataObj.detailData;
+  const display_count = Object.keys(current_data.calilData[0].books).length;
+  let displayArea = $('#template').clone();
+  displayArea.attr("id", '');
+  displayArea.attr("class", `${key_word}`);
+  $("#output").prepend(displayArea);
+  // //検索キーワードを表示するヘッダーを作成
+  // let clonedKeywordArea = $('#display_search_keyword').clone(); //「」の検索結果　と表示するエリアをクローン
+  // clonedKeywordArea.attr("class", `${key_word}`);
+  // $("#output_table").append(clonedKeywordArea);
+  console.log(key_word);
+  test = $(`.${key_word} .keyword_area`).html();
+  console.log(test);
+  $(`.${key_word} .keyword_area .keyword_header`).html("「" + userInput + "」の検索結果 (取得時間: " + obtained_time + ")");
+  $(`.${key_word} .keyword_area .btnResetForEach`).attr("id", `${key_word}`);
+  //それぞれの本のデータを表示
+  $(`.${key_word} .book_data_area`).remove();
+  for (let i = 0; i < display_count; i++) {
+    let clonedElement = $(`#template .book_data_area`).clone();
+    clonedElement.attr("id", '');
+    clonedElement.attr("class", `data${i}_${key_word}`);
+    $(`.${key_word}`).append(clonedElement);
+    // let clonedElement = $("#template").clone(); //テンプレートをクローン
+    // clonedElement.attr("id", `data${i}`); //IDを変更
+    // $("#output_table").append(clonedElement); //クローンした要素を追加
+    if (current_data.BookData[i].imageLinks.thumbnail) {
+      var img_scr = "<img src='" + current_data.BookData[i].imageLinks.thumbnail + "'/>"; // 本の表紙をHTMLに表示
+      $(`.data${i}_${key_word} .image`).html(img_scr);
+    }
+    $(`.data${i}_${key_word} .title`).html(current_data.BookData[i].title); //本のタイトルを表示
+    $(`.data${i}_${key_word} .author`).html("著者: " + current_data.BookData[i].authors); //本の著者を表示
+    $(`.data${i}_${key_word} .publishDate`).html("出版年月日: " + current_data.BookData[i].publishedDate); //出版年月日を表示
+    //蔵書状況を表示
+    //URLのリンクを追加
+    console.log(current_data);
+    const isbnData = [];
+    for (let i = 0; i < 3; i++) {
+      isbnData[i] = current_data.BookData[i].industryIdentifiers[0].identifier;
+    }
+    $(`.data${i}_${key_word} .ls_area .lendingStatus_cityLib .link`).attr("href", current_data.calilData[0].books[isbnData[i]].Ibaraki_Tsukuba.reserveurl);
+    $(`.data${i}_${key_word} .ls_area .lendingStatus_univLib .link`).attr("href", current_data.calilData[0].books[isbnData[i]].Univ_Tsukuba.reserveurl);
+    // cityLibについて
+    const places_cityLib = ["中央館", "谷田部", "筑波", "小野川", "茎崎", "自動車"];
+    const libkey_city = current_data.calilData[0]["books"][isbnData[i]][systemID["つくば市立図書館"]].libkey;
+    // console.log(libkey_city);
+    for (let index = 0; index < 6; index++) {
+      var place_cityLib = places_cityLib[index];
+      if (libkey_city[place_cityLib] == "貸出可") {
+        $(`.data${i}_${key_word} .lendingStatus_cityLib .${place_cityLib}`).html("◯");
+      } else if (libkey_city[place_cityLib] == "貸出中") {
+        $(`.data${i}_${key_word} .lendingStatus_cityLib .${place_cityLib}`).html("△");
+      } else {
+        $(`.data${i}_${key_word} .lendingStatus_cityLib .${place_cityLib}`).html("✕");
+      }
+    }
+    // univLibについて
+    const places_univLib = ["中央", "医学", "図情"];
+    // var places_univLib = Object.keys(current_data.calilData.univLib[i].libkey);
+    var libkey_univ = current_data.calilData[0].books[isbnData[i]][systemID["筑波大学付属図書館"]].libkey;
+    for (let index = 0; index < 3; index++) {
+      var place_univLib = places_univLib[index];
+      if (libkey_univ[place_univLib] == "貸出可") {
+        $(`.data${i}_${key_word} .lendingStatus_univLib .${place_univLib}`).html("◯");
+      } else if (libkey_univ[place_univLib] == "貸出中") {
+        $(`.data${i}_${key_word} .lendingStatus_univLib .${place_univLib}`).html("△");
+      } else {
+        $(`.data${i}_${key_word} .lendingStatus_univLib .${place_univLib}`).html("✕");
+      }
+    }
+  }
+};
+// リロード時
+window.onload = function () {
+  // localstorageに保存されているdataArrのすべての要素に対して、display_data_ver2を実行する
+  const keys = Object.keys(localStorage);
+  keys.forEach(function (key) {
+    const dataObj = JSON.parse(localStorage.getItem(key));
+    display_data_ver2(dataObj);
+  });
+};
+
+
+const display_data = function (userInput, key_word, obtained_time, dataArr) {
   const matchingItem = dataArr.find(function (item) {
     return item.keyword === key_word && item.obtained_time === obtained_time;
   });
   const current_data = matchingItem ? matchingItem.detailData : null;
   console.log(current_data);
+  // const isbnData = Object.keys(current_data.calilData[0].books);
   // console.log(current_data.calilData[0].books);
   const display_count = Object.keys(current_data.calilData[0].books).length;
   let displayArea = $('#template').clone();
@@ -168,7 +302,10 @@ const display_data = function (userInput, key_word, obtained_time, dataArr, isbn
     $(`.data${i}_${key_word} .publishDate`).html("出版年月日: " + current_data.BookData[i].publishedDate); //出版年月日を表示
     //蔵書状況を表示
     //URLのリンクを追加
-    // const link_cityLib =
+    const isbnData = [];
+    for (let i = 0; i < 3; i++) {
+      isbnData[i] = current_data.BookData[i].industryIdentifiers[0].identifier;
+    }
     $(`.data${i}_${key_word} .ls_area .lendingStatus_cityLib .link`).attr("href", current_data.calilData[0].books[isbnData[i]].Ibaraki_Tsukuba.reserveurl);
     $(`.data${i}_${key_word} .ls_area .lendingStatus_univLib .link`).attr("href", current_data.calilData[0].books[isbnData[i]].Univ_Tsukuba.reserveurl);
     // cityLibについて

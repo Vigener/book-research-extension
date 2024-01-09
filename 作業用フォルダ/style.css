@@ -2,7 +2,26 @@
   visibility: hidden;
 }
 
+/* .item_flexの子要素を横並びにする */
+.item_flex > * {
+  display: inline-block;
+  vertical-align: top;
+}
+
+/* .btnResetForEachの左側に間を10px開ける */
+.btnResetForEach {
+  margin-left: 10px;
+  /* 右寄せにする */
+  text-align: right;
+}
+
+/* keyword_headerのフォントサイズをデフォルトのサイズにする */
+.keyword_header {
+  font-size: medium;
+}
+
 .info {
+  min-width: 200px;
   max-width: 300px;
   white-space: nowrap; /* 子要素を折り返さないようにする */
   overflow: hidden; /* 隠れた内容を非表示にする */
