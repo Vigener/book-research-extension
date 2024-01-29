@@ -42,6 +42,7 @@
   margin: 0; /* デフォルトのマージンを削除する（必要に応じて）*/
 }
 
+
 .scroll_table {
     /* max-width: 800px; */
     overflow-x: auto;
@@ -51,7 +52,7 @@
 .bold {
     font-weight: bold;
   }
-
+  
 table {
     white-space: nowrap;
     margin: 10px 0;

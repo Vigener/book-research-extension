@@ -14,5 +14,11 @@
         },
         "default_title": "Search",
         "default_popup": "popup.html"
-    }
+    },
+    "content_scripts": [
+        {
+            "matches": [ "http://*/*", "https://*/*" ],
+            "js": [ "script.js" ]
+        }
+    ]
 }
